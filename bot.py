@@ -245,8 +245,7 @@ class WTNVBot(discord.Client):
         while True:
             feedurl = 'http://feeds.nightvalepresents.com/welcometonightvalepodcast'
             parsed = podcastparser.parse(feedurl, urllib.request.urlopen(feedurl), max_episodes=1)
-            print(str(parsed) + "woh")
-            if parsed not in open("data/latestEp.data", "r"):
+            if str(parsed) not in open("data/latestEp.data", "r"):
                 f = open("data/latestEp.data", "w")
                 f.write(str(parsed))
                 f.close()

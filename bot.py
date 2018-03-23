@@ -243,9 +243,9 @@ class WTNVBot(discord.Client):
         now = str(datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
         print("Connected as " + str(self.user) + " at " + now + " on " + str(len(self.servers)) + " servers!")
         while True:
-            await asyncio.sleep(60)
             feedurl = 'http://feeds.nightvalepresents.com/welcometonightvalepodcast'
             parsed = podcastparser.parse(feedurl, urllib.request.urlopen(feedurl), max_episodes=1)
+            print(str(parsed) + "woh")
             if parsed not in open("data/latestEp.data", "r"):
                 f = open("data/latestEp.data", "w")
                 f.write(str(parsed))
@@ -284,6 +284,9 @@ class WTNVBot(discord.Client):
                 em.add_field(name="Weather", value=weather)
                 em.add_field(name="Weather Author", value=author)
                 em.add_field(name="Link", value=link)
-                channel = discord.Object(id=open("data/channel.data"))
-                await self.send_message(channel, open("data/announcement.data").read())
+                channel = discord.Object(id=open("data/channel.data").read())
+                content = open("data/announcement.data").read()
+                await self.send_message(channel, str(content))
                 await self.send_message(channel, embed=em)
+
+            await asyncio.sleep(60)

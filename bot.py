@@ -98,11 +98,12 @@ class WTNVBot(discord.Client):
         # parsed is a dict
         episode = parsed.get("episodes", "none")
         title = parsed.get("channel", "none")
-        print(episode)
         msg = str(episode[0])
 
         msg = msg.replace("{'description': ", "")
         desc,link  = msg.split('.com', 1)
+        #print("desc: " + desc)
+        #print("Link: " + link)
         bin,link = link.split("'link': '", 1)
         del bin
         link, title = link.split("',", 1)
@@ -116,7 +117,6 @@ class WTNVBot(discord.Client):
         msg = msg.replace("'", "", 1)
         msg = msg + ".com"
         msg, weather = msg.split("Weather: ")
-        print(weather)
         weather = " " + weather
         weather, author = weather.split(' by ')
         bin,author = author.split("https://")
@@ -248,7 +248,7 @@ class WTNVBot(discord.Client):
             parsed = podcastparser.parse(feedurl, urllib.request.urlopen(feedurl), max_episodes=1)
             if parsed not in open("data/latestEp.data", "r"):
                 f = open("data/latestEp.data", "w")
-                f.write(parsed)
+                f.write(str(parsed))
                 f.close()
                 feedurl = 'http://feeds.nightvalepresents.com/welcometonightvalepodcast'
                 parsed = podcastparser.parse(feedurl, urllib.request.urlopen(feedurl), max_episodes=1)
@@ -284,4 +284,6 @@ class WTNVBot(discord.Client):
                 em.add_field(name="Weather", value=weather)
                 em.add_field(name="Weather Author", value=author)
                 em.add_field(name="Link", value=link)
-                await self.send_message(discord.Object(id=open("data/channel.data"), embed=em))
+                channel = discord.Object(id=open("data/channel.data"))
+                await self.send_message(channel, open("data/announcement.data").read())
+                await self.send_message(channel, embed=em)

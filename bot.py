@@ -8,6 +8,7 @@ import time
 import random
 import podcastparser
 import urllib.request
+import json
 
 from datetime import datetime
 
@@ -130,6 +131,36 @@ class WTNVBot(discord.Client):
         em.add_field(name="Link", value=link)
         await self.send_message(message.channel, embed=em)
 
+    async def cmd_learn(self, channel, message):
+        msg = message.content.strip()
+        msg = msg.replace(">learn ", "")
+        msg,answer  = msg.split("*")
+        msg = msg.lower()
+        old = open("data/commands.json").read()
+        old = json.loads(old)
+        old[msg] = answer
+        json.dump(old, open('data/commands.json', 'w'))
+        em = discord.Embed(title="Command Learned", colour=random.randint(0, 16777215))
+        await self.send_message(channel, embed=em)
+
+    async def cmd_unlearn(self, channel, message):
+        msg = message.content.strip()
+        msg = msg.replace(">unlearn ", "")
+        old = open("data/commands.json", "r").read()
+        old = json.loads(old)
+        meme = old[msg]
+        delete = '"{}": "{}", '.format(msg, meme)
+        delete2 = '"{}": "{}"'.format(msg, meme)
+        old = str(old)
+        old = old.replace("'", '"')
+        old = old.replace(delete, "")
+        old = old.replace(delete2, "")
+        f = open("data/commands.json", "w")
+        f.write(old)
+        f.close()
+        em = discord.Embed(title="Command Unlearned", colour=random.randint(0, 16777215))
+        await self.send_message(channel, embed=em)
+
     async def cmd_ping(self, channel):
         t1 = time.perf_counter()
         await self.send_typing(channel)
@@ -148,6 +179,14 @@ class WTNVBot(discord.Client):
         msg = message.content
         if msg.startswith(">") == False:
             return
+
+        content = message.content.strip()
+        content = content.replace(">", "")
+        if content.lower() in open("data/commands.json", "r").read():
+            parsed = json.loads(open("data/commands.json", "r").read())
+            reply = parsed[content.lower()]
+            await self.send_message(message.channel, reply)
+
 
         command, *args = message.content.split(
             ' ')  # Uh, doesn't this break prefixes with spaces in them (it doesn't, config parser already breaks them)
@@ -228,6 +267,7 @@ class WTNVBot(discord.Client):
                 expire_in=response.delete_after if self.config.delete_messages else 0,
                 also_delete=message if self.config.delete_invoking else None
             )
+
 
     async def on_server_join(self, server):
         name = server.name

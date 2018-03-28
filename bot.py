@@ -135,7 +135,7 @@ class WTNVBot(discord.Client):
         msg = message.content.strip()
         msg = msg.replace(">learn ", "")
         try:
-            msg,answer  = msg.split("*")
+            msg,answer  = msg.split("*", 1)
         except ValueError:
             em = discord.Embed(title="Incorrect Formatting, please format >learn like this: >learn command*Answer")
             await self.send_message(channel, embed=em)
@@ -148,9 +148,10 @@ class WTNVBot(discord.Client):
         em = discord.Embed(title="Command Learned", colour=random.randint(0, 16777215))
         await self.send_message(channel, embed=em)
 
-    async def cmd_unlearn(self, channel, message):
+    """async def cmd_unlearn(self, channel, message):
         msg = message.content.strip()
         msg = msg.replace(">unlearn ", "")
+        msg = msg.lower()
         old = open("data/commands.json", "r").read()
         old = json.loads(old)
         meme = old[msg]
@@ -168,7 +169,30 @@ class WTNVBot(discord.Client):
         f.write(old)
         f.close()
         em = discord.Embed(title="Command Unlearned", colour=random.randint(0, 16777215))
+        await self.send_message(channel, embed=em)"""
+
+    async def cmd_commands(self, channel):
+        commands = open("data/commands.json", "r").read()
+        commands = json.loads(commands)
+        commands = str(commands.keys())
+        commands = commands.replace("dict_keys([", "")
+        commands = commands.replace("])", "")
+        commands = commands.replace("'", "")
+        em = discord.Embed(title=commands)
         await self.send_message(channel, embed=em)
+
+    async def cmd_set_playing(self, channel, message, author):
+        if author.id not in open("data/admins.data").read():
+            em = discord.Embed(title="Set Playing", colour=(random.randint(0, 16777215)))
+            em.set_thumbnail(url="http://i.imgur.com/O4USCUs.png")
+            em.add_field(name="You are inferior",value="The SSP have noted your superiority complex.", inline=True)
+            await self.send_message(channel, embed=em)
+            return
+
+        content = message.content.strip()
+        content = content.replace(">set_playing", "")
+        game = (discord.Game(name=content, type=0))
+        await self.change_presence(game=game)
 
     async def cmd_ping(self, channel):
         t1 = time.perf_counter()
@@ -183,11 +207,8 @@ class WTNVBot(discord.Client):
         em.add_field(name="Response time", value="{} ms.".format(ping), inline=True)
         await self.send_message(channel, embed=em)
 
-
     async def on_message(self, message):
         msg = message.content
-        if msg.startswith(">") == False:
-            return
 
         content = message.content.strip()
         content = content.replace(">", "")
@@ -196,6 +217,8 @@ class WTNVBot(discord.Client):
             reply = parsed[content.lower()]
             await self.send_message(message.channel, reply)
 
+        if msg.startswith(">") == False:
+            return
 
         command, *args = message.content.split(
             ' ')  # Uh, doesn't this break prefixes with spaces in them (it doesn't, config parser already breaks them)
@@ -277,13 +300,10 @@ class WTNVBot(discord.Client):
                 also_delete=message if self.config.delete_invoking else None
             )
 
-
     async def on_server_join(self, server):
         name = server.name
         msg = "Thanks for adding me to '{}', if you need help type >help , and have fun!".format(name)
         await self.send_message(server, msg)
-
-
 
     async def on_ready(self):
         # Boot logging
@@ -291,7 +311,7 @@ class WTNVBot(discord.Client):
         self.owner = self.appinfo.owner #you now always have an accurate owner object to use (this is a user object, e.g. self.owner.id, self.owner.name etc.
         now = str(datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
         print("Connected as " + str(self.user) + " at " + now + " on " + str(len(self.servers)) + " servers!")
-        while True:
+        """while True:
             try:
                 feedurl = 'http://feeds.nightvalepresents.com/welcometonightvalepodcast'
                 parsed = podcastparser.parse(feedurl, urllib.request.urlopen(feedurl), max_episodes=1)
@@ -341,4 +361,4 @@ class WTNVBot(discord.Client):
             except URLError:
                 print("Network Error")
 
-            await asyncio.sleep(60)
+            await asyncio.sleep(60)"""

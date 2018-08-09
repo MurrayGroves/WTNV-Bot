@@ -9,6 +9,8 @@ import random
 import podcastparser
 import urllib.request
 import json
+import _thread
+import threading
 
 from datetime import datetime
 
@@ -26,6 +28,10 @@ else:
     print("Woh what os are you using??? This bot might have incompatabilities, it only supports unix and windows!")
     os_name = "unix"
 
+
+
+
+
 #Discord Setup
 class WTNVBot(discord.Client):
     def __innit__(self):
@@ -34,13 +40,17 @@ class WTNVBot(discord.Client):
         self.token()
         self.appinfo = ""
         self.owner = ""
-        self.prefix = ">"
+        self.prefix = "<"
         super().__innit__(shard_id=0, shard_count=1)
         self._setup_logging()
         self.aiosession = aiohttp.ClientSession(loop=self.loop)
 
+    global meme
     def run(self):
+        global meme
+        meme = self
         token = open("data/token.data", "r").read()
+        token = token.replace("\n", "")
         loop = asyncio.get_event_loop()
         self.loop = loop
         try:
@@ -62,6 +72,33 @@ class WTNVBot(discord.Client):
             except Exception as e:
                 loop.close()
 
+    def check():
+        while True:
+            feedurl = 'http://feeds.nightvalepresents.com/welcometonightvalepodcast'
+            parsed = podcastparser.parse(feedurl, urllib.request.urlopen(feedurl), max_episodes=1)
+            if str(parsed) not in open("data/ep.json").read():
+                desc = parsed['episodes'][0]['description']
+                title = parsed['episodes'][0]['title']
+                desc = desc.replace('Music: Disparition\n\nhttp://disparition.info\n\nLogo: Rob Wilson\n\nhttp://robwilsonwork.com\n\nWritten by Joseph Fink & Jeffrey Cranor. Narrated by Cecil Baldwin.\xa0\n\nhttp://welcometonightvale.com\n\nFollow us on Twitter\xa0@NightValeRadio\xa0or\xa0Facebook.\n\nProduced by Night Vale Presents.\xa0\n\nhttp://nightvalepresents.com', "")
+                em = discord.Embed(title=title, colour=random.randint(0, 16777215))
+                em.add_field(name="Description:", value=desc)
+                em.add_field(name="Link: ", value='http://feeds.nightvalepresents.com/welcometonightvalepodcast')
+                channel = (discord.Object(id='416636611116400660'))
+                print("before")
+                time.sleep(30)
+                print("after ")
+                loop = asyncio.new_event_loop()
+                asyncio.set_event_loop(loop)
+                loop.create_task(WTNVBot.cmd_latest(WTNVBot, channel))
+                #WTNVBot.cmd_latest(self=WTNVBot, channel=channel)
+
+            f = open("data/ep.json", "w")
+            f.write(str(parsed))
+            f.close()
+            time.sleep(60)
+
+    threading.Thread(target=check).start()
+
     async def cmd_set_channel(self, channel, message, author):
         if author.id not in open("data/admins.data").read():
             em = discord.Embed(title="Set Channel", colour=(random.randint(0, 16777215)))
@@ -71,7 +108,7 @@ class WTNVBot(discord.Client):
             return
 
         content = message.content.strip()
-        content = content.replace(">set_channel ")
+        content = content.replace("<set_channel ")
         f = open("data/channel.data", "w")
         f.write(content)
         f.close()
@@ -86,58 +123,30 @@ class WTNVBot(discord.Client):
             return
 
         content = message.content.strip()
-        content = content.replace(">set_message")
+        content = content.replace("<set_message")
         f = open("data/channel.data", "w")
         f.write(content)
         f.close()
 
 
-    async def cmd_latest(self, message):
-        feedurl = 'http://feeds.nightvalepresents.com/welcometonightvalepodcast'
-        parsed = podcastparser.parse(feedurl, urllib.request.urlopen(feedurl), max_episodes=1)
-
-        # parsed is a dict
-        episode = parsed.get("episodes", "none")
-        title = parsed.get("channel", "none")
-        msg = str(episode[0])
-
-        msg = msg.replace("{'description': ", "")
-        desc,link  = msg.split('.com', 1)
-        #print("desc: " + desc)
-        #print("Link: " + link)
-        bin,link = link.split("'link': '", 1)
-        del bin
-        link, title = link.split("',", 1)
-        bin,title = title.split("'title': ")
-        del bin
-        title,bin = title.split("', 'subtitle'")
-        del bin
-        title = title.replace("'", "", 1)
-
-        msg = desc.replace("\\n", " ")
-        msg = msg.replace("'", "", 1)
-        msg = msg + ".com"
-        msg, weather = msg.split("Weather: ")
-        weather = " " + weather
-        weather, author = weather.split(' by ')
-        bin,author = author.split("https://")
-        del bin
-        author = "https://" + author
-
+    async def cmd_latest(self, channel):
+        parsed = json.loads(open("data/ep.json").read())
+        desc = parsed['episodes'][0]['description']
+        title = parsed['episodes'][0]['title']
+        desc = desc.replace('Music: Disparition\n\nhttp://disparition.info\n\nLogo: Rob Wilson\n\nhttp://robwilsonwork.com\n\nWritten by Joseph Fink & Jeffrey Cranor. Narrated by Cecil Baldwin.\xa0\n\nhttp://welcometonightvale.com\n\nFollow us on Twitter\xa0@NightValeRadio\xa0or\xa0Facebook.\n\nProduced by Night Vale Presents.\xa0\n\nhttp://nightvalepresents.com', "")
         em = discord.Embed(title=title, colour=random.randint(0, 16777215))
-        em.add_field(name="Description", value=msg)
-        em.add_field(name="Weather", value=weather)
-        em.add_field(name="Weather Author", value=author)
-        em.add_field(name="Link", value=link)
-        await self.send_message(message.channel, embed=em)
+        em.add_field(name="Description:", value=desc)
+        em.add_field(name="Link: ", value='http://feeds.nightvalepresents.com/welcometonightvalepodcast')
+        await self.send_message(channel, embed=em)
 
     async def cmd_learn(self, channel, message):
         msg = message.content.strip()
-        msg = msg.replace(">learn ", "")
+        msg = msg.replace("<learn ", "")
+        msg = msg.replace("'", """\'""")
         try:
             msg,answer  = msg.split("*", 1)
         except ValueError:
-            em = discord.Embed(title="Incorrect Formatting, please format >learn like this: >learn command*Answer")
+            em = discord.Embed(title="Incorrect Formatting, please format <learn like this: <learn command*Answer")
             await self.send_message(channel, embed=em)
             return
         msg = msg.lower()
@@ -148,28 +157,30 @@ class WTNVBot(discord.Client):
         em = discord.Embed(title="Command Learned", colour=random.randint(0, 16777215))
         await self.send_message(channel, embed=em)
 
-    """async def cmd_unlearn(self, channel, message):
+    async def cmd_unlearn(self, channel, message):
         msg = message.content.strip()
-        msg = msg.replace(">unlearn ", "")
+        msg = msg.replace("<unlearn ", "")
         msg = msg.lower()
         old = open("data/commands.json", "r").read()
         old = json.loads(old)
-        meme = old[msg]
-        delete = ', "{}": "{}", '.format(msg, meme)
-        delete2 = ', "{}": "{}"'.format(msg, meme)
-        delete3 = '"{}": "{}"'.format(msg, meme)
-        delete4 = '"{}": "{}"'.format(msg, meme)
+        reply = old[msg]
+        clear = "'{}': '{}', ".format(msg, reply)
+        clear2 = ", '{}': '{}'".format(msg, reply)
+        clear3 = "'{}': '{}'".format(msg, reply)
+        clear4 = ", '{}': ''{}', ".format(msg, reply)
         old = str(old)
+        old = old.replace(clear4, "")
+        old = old.replace(clear, "")
+        old = old.replace(clear2, "")
+        old = old.replace(clear3, "")
         old = old.replace("'", '"')
-        old = old.replace(delete, "")
-        old = old.replace(delete2, "")
-        old = old.replace(delete3, "")
-        old = old.replace(delete4, "")
         f = open("data/commands.json", "w")
         f.write(old)
         f.close()
+        print(old)
+
         em = discord.Embed(title="Command Unlearned", colour=random.randint(0, 16777215))
-        await self.send_message(channel, embed=em)"""
+        await self.send_message(channel, embed=em)
 
     async def cmd_commands(self, channel):
         commands = open("data/commands.json", "r").read()
@@ -178,8 +189,11 @@ class WTNVBot(discord.Client):
         commands = commands.replace("dict_keys([", "")
         commands = commands.replace("])", "")
         commands = commands.replace("'", "")
-        em = discord.Embed(title=commands)
-        await self.send_message(channel, embed=em)
+        commands = '`' + commands +'`'
+        commands = commands.replace(",", "` , `")
+        print(commands)
+        em = discord.Embed(title=commands, colour=random.randint(0, 16777215))
+        await self.send_message(channel, commands)
 
     async def cmd_set_playing(self, channel, message, author):
         if author.id not in open("data/admins.data").read():
@@ -190,9 +204,11 @@ class WTNVBot(discord.Client):
             return
 
         content = message.content.strip()
-        content = content.replace(">set_playing", "")
+        content = content.replace("<set_playing", "")
         game = (discord.Game(name=content, type=0))
         await self.change_presence(game=game)
+        em = discord.Embed(title="Now Playing: {}".format(content), colour=random.randint(0, 16777215))
+        await self.send_message(channel, embed=em)
 
     async def cmd_ping(self, channel):
         t1 = time.perf_counter()
@@ -211,18 +227,22 @@ class WTNVBot(discord.Client):
         msg = message.content
 
         content = message.content.strip()
-        content = content.replace(">", "")
+        content = content.replace("<", "")
         if content.lower() in open("data/commands.json", "r").read():
-            parsed = json.loads(open("data/commands.json", "r").read())
-            reply = parsed[content.lower()]
-            await self.send_message(message.channel, reply)
+            try:
+                parsed = json.loads(open("data/commands.json", "r").read())
+                reply = parsed[content.lower()]
+                await self.send_message(message.channel, reply)
 
-        if msg.startswith(">") == False:
+            except:
+                pass
+
+        if msg.startswith("<") == False:
             return
 
         command, *args = message.content.split(
             ' ')  # Uh, doesn't this break prefixes with spaces in them (it doesn't, config parser already breaks them)
-        command = command[len('>'):].lower().strip()
+        command = command[len('<'):].lower().strip()
         handler = getattr(self, 'cmd_' + command, None)
         if not handler:
             return
@@ -302,7 +322,7 @@ class WTNVBot(discord.Client):
 
     async def on_server_join(self, server):
         name = server.name
-        msg = "Thanks for adding me to '{}', if you need help type >help , and have fun!".format(name)
+        msg = "Thanks for adding me to '{}', if you need help type <help , and have fun!".format(name)
         await self.send_message(server, msg)
 
     async def on_ready(self):

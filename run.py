@@ -2,15 +2,15 @@ import os
 import threading
 
 def bootBot():
-	try:
+	if os.name == 'nt':
 		os.system('py bootbot.py')
-	except:
+	else:
 		os.system('python bootbot.py')
 
 def loopBot():
-	try:
+	if os.name == 'nt':
 		os.system('py loopbotstart.py')
-	except:
+	else:
 		os.system('python loopbotstart.py')
 
 botThread = threading.Thread(name='botThread', target=bootBot)

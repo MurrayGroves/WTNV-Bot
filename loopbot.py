@@ -84,159 +84,15 @@ class WTNVBot(discord.Client):
             except Exception as e:
                 loop.close()
 
-    async def cmd_rand(self):
-                jdata = open('data/commands.json').read()
-                jdata = json.loads(jdata)
-
-                json_keys = []
-                for key in jdata:
-                    json_keys.append(key)
-
-                choice = random.choice(json_keys)
-                choice_answer = jdata[choice]
-
-                game = (discord.Game(name=choice+' : '+choice_answer, type=0))
-                await self.change_presence(game=game)
-
-    async def cmd_set_message(self, channel, message, author):
-        if author.id not in open("data/admins.data").read():
-            em = discord.Embed(title="Set Message", colour=(random.randint(0, 16777215)))
-            em.set_thumbnail(url="http://i.imgur.com/O4USCUs.png")
-            em.add_field(name="You are inferior",value="The SSP have noted your superiority complex.", inline=True)
-            await self.send_message(channel, embed=em)
-            return
-
-        content = message.content.strip()
-        content = content.replace("<set_message", '')
-        f = open("data/announcement.data", "w")
-        f.write(content)
-        f.close()
-
-        em = discord.Embed(title='Announcment message set', colour=random.randint(0,16777215))
-
-
-    async def cmd_latest(self, channel):
-                feedurl = 'http://feeds.nightvalepresents.com/welcometonightvalepodcast'
-                parsed = podcastparser.parse(feedurl, urllib.request.urlopen(feedurl), max_episodes=1)
-
-
-                # parsed is a dict
-                episode = parsed.get("episodes", "none")
-                title = parsed.get("channel", "none")
-                msg = str(episode[0])
-
-                msg = msg.replace("{'description': ", "")
-                desc,link  = msg.split('.com', 1)
-                bin,link = link.split("'link': '", 1)
-                del bin
-                link, title = link.split("',", 1)
-                bin,title = title.split("'title': ")
-                del bin
-                title,bin = title.split("', 'subtitle'")
-                del bin
-                title = title.replace("'", "", 1)
-
-                msg = desc.replace("\\n", " ")
-                msg = msg.replace("'", "", 1)
-                msg = msg + ".com"
-                msg, weather = msg.split("Weather: ")
-                weather = " " + weather
-                weather, author = weather.split(' by ')
-                print(author)
-                bin,author = author.split("   ")
-                del bin
-                author = "https://" + author
-
-                em = discord.Embed(title=title, colour=random.randint(0, 16777215))
-                em.add_field(name="Description", value=msg+'"')
-                em.add_field(name="Weather", value=weather)
-                em.add_field(name="Weather Author", value=author)
-                em.add_field(name="Link", value=link)
-                await self.send_message(channel, embed=em)
-
-    async def cmd_learn(self, channel, message):
-        msg = message.content.strip()
-        msg = msg.replace("<learn ", "")
-        msg = msg.replace("'", """\'""")
-        try:
-            msg,answer  = msg.split("*", 1)
-        except ValueError:
-            em = discord.Embed(title="Incorrect Formatting, please format <learn like this: <learn command*Answer")
-            await self.send_message(channel, embed=em)
-            return
-        msg = msg.lower()
-        old = open("data/commands.json").read()
-        old = json.loads(old)
-        old[msg] = answer
-        json.dump(old, open('data/commands.json', 'w'))
-        em = discord.Embed(title="Command Learned", colour=random.randint(0, 16777215))
-        await self.send_message(channel, embed=em)
-
-    async def cmd_unlearn(self, channel, message):
-        msg = message.content.strip()
-        msg = msg.replace("<unlearn ", "")
-        msg = msg.lower()
-        old = open("data/commands.json", "r").read()
-        old = json.loads(old)
-        reply = old[msg]
-        clear = "'{}': '{}', ".format(msg, reply)
-        clear2 = ", '{}': '{}'".format(msg, reply)
-        clear3 = "'{}': '{}'".format(msg, reply)
-        clear4 = ", '{}': ''{}', ".format(msg, reply)
-        old = str(old)
-        old = old.replace(clear4, "")
-        old = old.replace(clear, "")
-        old = old.replace(clear2, "")
-        old = old.replace(clear3, "")
-        old = old.replace("'", '"')
-        f = open("data/commands.json", "w")
-        f.write(old)
-        f.close()
-        print(old)
-
-        em = discord.Embed(title="Command Unlearned", colour=random.randint(0, 16777215))
-        await self.send_message(channel, embed=em)
-
-    async def cmd_commands(self, channel):
-        commands = open("data/commands.json", "r").read()
-        commands = json.loads(commands)
-        commands = str(commands.keys())
-        commands = commands.replace("dict_keys([", "")
-        commands = commands.replace("])", "")
-        commands = commands.replace("'", "")
-        commands = '`' + commands +'`'
-        commands = commands.replace(",", "` , `")
-        print(commands)
-        em = discord.Embed(title=commands, colour=random.randint(0, 16777215))
-        await self.send_message(channel, commands)
-
-    async def cmd_ping(self, channel):
-        t1 = time.perf_counter()
-        await self.send_typing(channel)
-        t2 = time.perf_counter()
-        ping = (float(t2 - t1)) * 1000
-        ping = round(ping, 0)
-        ping = str(ping)
-        ping = ping.replace(".0", "")
-        em = discord.Embed(title="Ping", colour=(random.randint(0, 16777215)))
-        em.set_thumbnail(url="http://i.imgur.com/L6sA5sd.png")
-        em.add_field(name="Response time", value="{} ms.".format(ping), inline=True)
-        await self.send_message(channel, embed=em)
+    async def cmd_boop(self,message):
+        await self.send_message(message.channel,'flip')
+        print('flip')
 
     async def on_message(self, message):
         #Set content to be the content of the message
         msg = message.content
         content = message.content.strip()
         content = content.replace("<", "")
-
-        if content.lower() in open("data/commands.json", "r").read():
-            try:
-                parsed = json.loads(open("data/commands.json", "r").read())
-                reply = parsed[content.lower()]
-                await self.send_message(message.channel, reply)
-
-            except:
-                pass
 
         if msg.startswith("<") == False:
             return
@@ -332,3 +188,79 @@ class WTNVBot(discord.Client):
         self.owner = self.appinfo.owner #you now always have an accurate owner object to use (this is a user object, e.g. self.owner.id, self.owner.name etc.
         now = str(datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
         print("Connected as " + str(self.user) + " at " + now + " on " + str(len(self.servers)) + " servers!")
+
+        while True:
+            jdata = open('data/commands.json').read()
+            jdata = json.loads(jdata)
+
+            json_keys = []
+            for key in jdata:
+                json_keys.append(key)
+
+            choice = random.choice(json_keys)
+            choice_answer = jdata[choice]
+
+            game = (discord.Game(name=choice+' : '+choice_answer, type=0))
+            await self.change_presence(game=game)
+
+            feedurl = 'http://feeds.nightvalepresents.com/welcometonightvalepodcast'
+            parsed = podcastparser.parse(feedurl, urllib.request.urlopen(feedurl), max_episodes=1)
+
+            try:
+                open('data/latestEp.data')
+
+            except:
+                open('data/latestEp.data', 'w+')
+
+            if str(parsed) not in open("data/latestEp.data", "r"):
+                f = open("data/latestEp.data", "w")
+                f.write(str(parsed))
+                f.close()
+                feedurl = 'http://feeds.nightvalepresents.com/welcometonightvalepodcast'
+                parsed = podcastparser.parse(feedurl, urllib.request.urlopen(feedurl), max_episodes=1)
+
+
+                # parsed is a dict
+                episode = parsed.get("episodes", "none")
+                title = parsed.get("channel", "none")
+                msg = str(episode[0])
+
+                msg = msg.replace("{'description': ", "")
+                desc,link  = msg.split('.com', 1)
+                bin,link = link.split("'link': '", 1)
+                del bin
+                link, title = link.split("',", 1)
+                bin,title = title.split("'title': ")
+                del bin
+                title,bin = title.split("', 'subtitle'")
+                del bin
+                title = title.replace("'", "", 1)
+
+                msg = desc.replace("\\n", " ")
+                msg = msg.replace("'", "", 1)
+                msg = msg + ".com"
+                msg, weather = msg.split("Weather: ")
+                weather = " " + weather
+                weather, author = weather.split(' by ')
+                print(author)
+                bin,author = author.split("   ")
+                del bin
+                author = "https://" + author
+
+                em = discord.Embed(title=title, colour=random.randint(0, 16777215))
+                em.add_field(name="Description", value=msg+'"')
+                em.add_field(name="Weather", value=weather)
+                em.add_field(name="Weather Author", value=author)
+                em.add_field(name="Link", value=link)
+                channel = discord.Object(id=427145996284329985)
+                try:
+                    content = open("data/announcement.data").read()
+
+                except:
+                    open('data/announcement.data','w+')
+                await self.send_message(channel, str(content))
+                await self.send_message(channel, embed=em)
+                print('uwu')
+
+
+            await asyncio.sleep(60)

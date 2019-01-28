@@ -1,23 +1,14 @@
 import os
-import time
-from oraclebot import WTNVBot
-if os.path.isdir("data/") == False:
-	print("Creating data directory")
-	os.mkdir("data/")
+import threading
 
-try:
-	f = open("data/token.data", "r")
-	f.close()
+def bootBot():
+	os.system('py bootbot.py')
 
-except:
-	f = open("data/token.data", "w+")
-	token = input("No token found, please input token:\n")
-	f.write(token)
-	f.close()
-	print("Token saved")
-	time.sleep(1)
+def loopBot():
+	os.system('py loopbotstart.py')
 
-print("Booting...")
+botThread = threading.Thread(name='botThread', target=bootBot)
+loopThread = threading.Thread(name='loopThread', target=loopBot)
 
-b = WTNVBot()
-b.run()
+botThread.start()
+loopThread.start()

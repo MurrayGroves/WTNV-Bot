@@ -219,48 +219,107 @@ class WTNVBot(discord.Client):
                 feedurl = 'http://feeds.nightvalepresents.com/welcometonightvalepodcast'
                 parsed = podcastparser.parse(feedurl, urllib.request.urlopen(feedurl), max_episodes=1)
 
+                global os_name
 
-                # parsed is a dict
-                episode = parsed.get("episodes", "none")
-                title = parsed.get("channel", "none")
-                msg = str(episode[0])
+                if os_name == 'windows':
+                    # parsed is a dict
+                    episode = parsed.get("episodes", "none")
+                    title = parsed.get("channel", "none")
+                    msg = str(episode[0])
 
-                msg = msg.replace("{'description': ", "")
-                desc,link  = msg.split('.com', 1)
-                bin,link = link.split("'link': '", 1)
-                del bin
-                link, title = link.split("',", 1)
-                bin,title = title.split("'title': ")
-                del bin
-                title,bin = title.split("', 'subtitle'")
-                del bin
-                title = title.replace("'", "", 1)
+                    msg = msg.replace("{'description': ", "")
+                    desc,link  = msg.split('.com', 1)
+                    bin,link = link.split("'link': '", 1)
+                    del bin
+                    link, title = link.split("',", 1)
+                    bin,title = title.split("'title': ")
+                    del bin
+                    title,bin = title.split("', 'subtitle'")
+                    del bin
+                    title = title.replace("'", "", 1)
 
-                msg = desc.replace("\\n", " ")
-                msg = msg.replace("'", "", 1)
-                msg = msg + ".com"
-                msg, weather = msg.split("Weather: ")
-                weather = " " + weather
-                weather, author = weather.split(' by ')
-                print(author)
-                bin,author = author.split("   ")
-                del bin
-                author = "https://" + author
+                    msg = desc.replace("\\n", " ")
+                    msg = msg.replace("'", "", 1)
+                    msg = msg + ".com"
+                    msg, weather = msg.split("Weather: ")
+                    weather = " " + weather
+                    weather, author = weather.split(' by ')
+                    print(author)
+                    bin,author = author.split("   ")
+                    del bin
+                    author = "https://" + author
 
-                em = discord.Embed(title=title, colour=random.randint(0, 16777215))
-                em.add_field(name="Description", value=msg+'"')
-                em.add_field(name="Weather", value=weather)
-                em.add_field(name="Weather Author", value=author)
-                em.add_field(name="Link", value=link)
-                channel = discord.Object(id=427145996284329985)
-                try:
-                    content = open("data/announcement.data").read()
+                    em = discord.Embed(title=title, colour=random.randint(0, 16777215))
+                    em.add_field(name="Description", value=msg+'"')
+                    em.add_field(name="Weather", value=weather)
+                    em.add_field(name="Weather Author", value=author)
+                    em.add_field(name="Link", value=link)
+                    channel = discord.Object(id=427145996284329985)
+                    try:
+                        content = open("data/announcement.data").read()
 
-                except:
-                    open('data/announcement.data','w+')
-                await self.send_message(channel, str(content))
-                await self.send_message(channel, embed=em)
-                print('uwu')
+                    except:
+                        open('data/announcement.data','w+')
+                    await self.send_message(channel, str(content))
+                    await self.send_message(channel, embed=em)
+                    print('uwu')
+
+                else:
+                    content = parsed['episodes']
+                    content = content[0]
+
+                    description = content['description']
+                    desc_html = content['description_html']
+                    description,desc_html = desc_html.split('</p>\n\n',1)
+                    description = description.replace('<p>','')
+                    desc_html = desc_html.replace('<p>Weather: ','',2)
+
+                    weather,desc_html = desc_html.split('</p>',1)
+                    print(weather)
+                    weather_name,weather = weather.split('”',1)
+                    weather_name = weather_name.replace('“','')
+
+                    weather_author = weather.replace(' <br>','')
+                    weather_author = weather_author.replace(' by ','')
+                    weather_author,desc_html = weather_author.split('<a href="',1)
+                    weather_link,desc_html = desc_html.split('"',1)
+
+
+                    desc_html = desc_html.replace('\n\n', '')
+
+                    enclosures = content['enclosures']
+                    enclosures = enclosures[0]
+                    #time = enclosures['time']
+                    url = enclosures['url']
+
+                    title = url.split('/',8)[-1]
+                    title = title.replace('_',' ')
+                    title = title.replace(' i.mp3','')
+
+                    print('Title:{}, Desc:{},Weather:{}, Weather Author:{}, Weather Link: {}'.format(title,description,weather_name,weather_author,weather_link))
+
+
+                    em = discord.Embed(title=title, colour=random.randint(0, 16777215))
+                    em.add_field(name="Description", value=description)
+                    em.add_field(name="Weather", value=weather_name)
+                    em.add_field(name="Weather Author", value=weather_author)
+                    em.add_field(name="Link", value=weather_link)
+                    channel = discord.Object(id=427145996284329985)
+
+                    try:
+                        content = open("data/announcement.data").read()
+
+                    except:
+                        open('data/announcement.data','w+')
+                        await self.send_message(channel, str(content))
+
+                    await self.send_message(channel, embed=em)
+
+
+
+
+
+
 
 
             await asyncio.sleep(60)

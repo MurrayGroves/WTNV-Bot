@@ -254,7 +254,7 @@ class WTNVBot(discord.Client):
                     em.add_field(name="Weather", value=weather)
                     em.add_field(name="Weather Author", value=author)
                     em.add_field(name="Link", value=link)
-                    channel = discord.Object(id=427145996284329985)
+                    channel = discord.Object(id=220959090673844226)
                     try:
                         content = open("data/announcement.data").read()
 
@@ -304,7 +304,7 @@ class WTNVBot(discord.Client):
                     em.add_field(name="Weather", value=weather_name)
                     em.add_field(name="Weather Author", value=weather_author)
                     em.add_field(name="Link", value=weather_link)
-                    channel = discord.Object(id=427145996284329985)
+                    channel = discord.Object(id=220959090673844226)
 
                     try:
                         content = open("data/announcement.data").read()

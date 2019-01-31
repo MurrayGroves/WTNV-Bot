@@ -141,7 +141,7 @@ class WTNVBot(discord.Client):
 
             await self.send_message(channel, embed=em)
 
-      
+
         else:
             content = parsed['episodes']
             content = content[0]
@@ -180,7 +180,7 @@ class WTNVBot(discord.Client):
             em.add_field(name="Weather Author", value=weather_author)
             em.add_field(name="Link", value=weather_link)
             await self.send_message(channel, embed=em)
-            
+
     async def cmd_learn(self, channel, message):
         msg = message.content.strip()
         msg = msg.replace("<learn ", "")
@@ -214,23 +214,6 @@ class WTNVBot(discord.Client):
         f.write(new)
         f.close()
 
-        """
-        reply = old[msg]
-        clear = "'{}': '{}', ".format(msg, reply)
-        clear2 = ", '{}': '{}'".format(msg, reply)
-        clear3 = "'{}': '{}'".format(msg, reply)
-        clear4 = ", '{}': ''{}', ".format(msg, reply)
-        old = str(old)
-        old = old.replace(clear4, "")
-        old = old.replace(clear, "")
-        old = old.replace(clear2, "")
-        old = old.replace(clear3, "")
-        old = old.replace("'", '"')
-        f = open("data/commands.json", "w")
-        f.write(old)
-        f.close()
-        print(old)"""
-
         em = discord.Embed(title="Command Unlearned", colour=random.randint(0, 16777215))
         await self.send_message(channel, embed=em)
 
@@ -258,6 +241,14 @@ class WTNVBot(discord.Client):
         em = discord.Embed(title="Ping", colour=(random.randint(0, 16777215)))
         em.set_thumbnail(url="http://i.imgur.com/L6sA5sd.png")
         em.add_field(name="Response time", value="{} ms.".format(ping), inline=True)
+        await self.send_message(channel, embed=em)
+
+    async def on_member_join(self, member):
+        em = discord.Embed(title='***SECRET POLICE WARNING***',colour=16711680)
+        em.add_field(name='Warning Message:', value='INTERLOPER!!!')
+
+        channel = discord.Object(id=220959090673844226)
+
         await self.send_message(channel, embed=em)
 
     async def on_message(self, message):

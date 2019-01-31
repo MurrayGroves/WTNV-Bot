@@ -245,6 +245,7 @@ class WTNVBot(discord.Client):
 
     async def on_member_join(self, member):
         em = discord.Embed(title='***SECRET POLICE WARNING***',colour=16711680)
+        em.set_thumbnail(url='https://www.clipartmax.com/png/middle/24-249770_red-triangle-exclamation-mark.png')
         em.add_field(name='Warning Message:', value='INTERLOPER!!!')
 
         channel = discord.Object(id=220959090673844226)

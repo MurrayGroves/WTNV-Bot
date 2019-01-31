@@ -84,20 +84,6 @@ class WTNVBot(discord.Client):
             except Exception as e:
                 loop.close()
 
-    async def cmd_rand(self):
-                jdata = open('data/commands.json').read()
-                jdata = json.loads(jdata)
-
-                json_keys = []
-                for key in jdata:
-                    json_keys.append(key)
-
-                choice = random.choice(json_keys)
-                choice_answer = jdata[choice]
-
-                game = (discord.Game(name=choice+' : '+choice_answer, type=0))
-                await self.change_presence(game=game)
-
     async def cmd_set_message(self, channel, message, author):
         if author.id not in open("data/admins.data").read():
             em = discord.Embed(title="Set Message", colour=(random.randint(0, 16777215)))
@@ -157,7 +143,7 @@ class WTNVBot(discord.Client):
     async def cmd_learn(self, channel, message):
         msg = message.content.strip()
         msg = msg.replace("<learn ", "")
-        msg = msg.replace("'", """\'""")
+        msg = msg.replace("'", """<wack/this/is/an/apostrophe>""")
         try:
             msg,answer  = msg.split("*", 1)
         except ValueError:
@@ -176,8 +162,18 @@ class WTNVBot(discord.Client):
         msg = message.content.strip()
         msg = msg.replace("<unlearn ", "")
         msg = msg.lower()
-        old = open("data/commands.json", "r").read()
-        old = json.loads(old)
+
+        old = json.loads(open('data/commands.json').read())
+
+        if msg in old:
+            del old[msg]
+
+        new = json.dumps(old)
+        f = open('data/commands.json','w')
+        f.write(new)
+        f.close()
+
+        """
         reply = old[msg]
         clear = "'{}': '{}', ".format(msg, reply)
         clear2 = ", '{}': '{}'".format(msg, reply)
@@ -192,7 +188,7 @@ class WTNVBot(discord.Client):
         f = open("data/commands.json", "w")
         f.write(old)
         f.close()
-        print(old)
+        print(old)"""
 
         em = discord.Embed(title="Command Unlearned", colour=random.randint(0, 16777215))
         await self.send_message(channel, embed=em)
@@ -233,6 +229,7 @@ class WTNVBot(discord.Client):
             try:
                 parsed = json.loads(open("data/commands.json", "r").read())
                 reply = parsed[content.lower()]
+                reply = reply.replace('<wack/this/is/an/apostrophe>',"'")
                 await self.send_message(message.channel, reply)
 
             except:

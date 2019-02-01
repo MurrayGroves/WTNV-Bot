@@ -9,7 +9,7 @@ A Discord bot used on the WTNV Discord server
   Commands can be viewed through ```<commands```
   
 ### New Status Every 60 Seconds:
-  
+  Bot chooses a random command:reply to be status message every 60 seconds
   
 ### New Podcast Announcement:
   Bot automatically announces when a new episode of the podcast is released.

@@ -259,6 +259,9 @@ class WTNVBot(discord.Client):
         content = content.replace("<", "")
 
         if content.lower() in open("data/commands.json", "r").read():
+            if message.author.id == '588822050710356006':
+                print('No')
+                return
             try:
                 parsed = json.loads(open("data/commands.json", "r").read())
                 reply = parsed[content.lower()]

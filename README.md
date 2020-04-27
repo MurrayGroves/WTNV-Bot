@@ -1,3 +1,6 @@
+# Deprecated
+The bot was rewritten with the new Discord.py, it can be seen here: https://github.com/MurrayGroves/Oracle
+
 # WTNV Bot
 A Discord bot used on the WTNV Discord server
 
